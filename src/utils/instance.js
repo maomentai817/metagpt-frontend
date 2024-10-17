@@ -1,11 +1,11 @@
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 
-const baseURL = 'xxx'
+const baseURL = 'http://localhost:3007'
 
 const instance = axios.create({
   baseURL,
-  timeout: 5000
+  timeout: 50000
 })
 
 // 添加请求拦截器
@@ -37,7 +37,7 @@ instance.interceptors.response.use(
   (err) => {
     ElMessage({
       type: 'warning',
-      message: err.response.data.message
+      message: err.message
     })
     // TODO: 处理 401 错误 -- token 失效
     if (err.response && err.response.status === 401) {

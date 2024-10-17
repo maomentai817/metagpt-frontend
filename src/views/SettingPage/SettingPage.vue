@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useGlobalStore } from '@/stores'
+import { getConnection } from '@/api/config'
 
 const options = [
   {
@@ -105,11 +106,16 @@ const globalStore = useGlobalStore()
 
 // 连通测试
 const connect = ref(false)
-const connectTest = () => {
+const connectTest = async () => {
   formRef.value.validate(async (valid) => {
     if (valid) {
       // TODO: 连通测试
-      connect.value = true
+      const res = await getConnection({
+        model: form.value.model,
+        apikey: form.value.apikey,
+        baseurl: form.value.baseurl
+      })
+      if (res.status === 200) connect.value = true
       if (connect.value) {
         ElNotification.success('连通测试通过, 当前服务可使用')
       } else {

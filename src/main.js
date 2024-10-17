@@ -11,7 +11,8 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 
 // 引入初始化全局样式
 // import '@/styles/common.scss'
-
+// 夜间模式样式
+import 'element-plus/theme-chalk/dark/css-vars.css'
 // 引入全局组件
 import { componentPlugin } from '@/components'
 // 引入懒加载指令
@@ -23,8 +24,6 @@ import 'ant-design-vue/dist/reset.css'
 // UnoCSS
 import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
-// 夜间模式样式
-import 'element-plus/theme-chalk/dark/css-vars.css'
 
 const app = createApp(App)
 

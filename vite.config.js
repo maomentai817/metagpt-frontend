@@ -6,15 +6,16 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import UnoCSS from 'unocss/vite'
-// import { presetUno } from 'unocss'
-// import { presetDaisy } from 'unocss-preset-daisy'
+import { presetUno } from 'unocss'
+import { presetDaisy } from 'unocss-preset-daisy'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [
     vue(),
-    // UnoCSS({ presets: [presetUno(), presetDaisy()] }),
-    UnoCSS(),
+    UnoCSS({ presets: [presetUno(), presetDaisy()] }),
+    // UnoCSS(),
     AutoImport({
       resolvers: [
         ElementPlusResolver({

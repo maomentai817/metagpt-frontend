@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useGlobalStore } from '@/stores'
 import { getConnection } from '@/api/config'
 
@@ -129,20 +129,31 @@ const connectTest = async () => {
   })
 }
 // 保存配置
-const saveConfig = () => {
-  if (connect.value) {
-    formRef.value.validate(async (valid) => {
-      if (valid) {
-        ElNotification.success('配置保存成功')
-      } else {
-        ElNotification.error('请检查配置信息')
-        return false
-      }
-    })
-  } else {
-    ElNotification.error('请先连通测试')
-  }
+const saveConfig = async () => {
+  connect.value = false
+  await connectTest()
+  formRef.value.validate(async (valid) => {
+    if (valid) {
+      const res = await globalStore.updateConfigStore(form.value)
+      if (res.status === 200) ElNotification.success(res.msg)
+      else ElNotification.error(res.msg)
+    } else {
+      ElNotification.error('请检查配置信息')
+      return false
+    }
+  })
 }
+
+onMounted(async () => {
+  if (globalStore.config) {
+    form.value = globalStore.config
+  } else {
+    const res = await globalStore.getConfigStore()
+    if (res.status === 200) {
+      form.value = globalStore.config
+    }
+  }
+})
 
 // 表单校验
 const formRef = ref(null)

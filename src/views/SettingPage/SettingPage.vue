@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useGlobalStore } from '@/stores'
+import { useGlobalStore, useConfigStore } from '@/stores'
 import { getConnection } from '@/api/config'
 
 const options = [
@@ -103,6 +103,7 @@ const form = ref({
 })
 
 const globalStore = useGlobalStore()
+const configStore = useConfigStore()
 
 // 连通测试
 const connect = ref(false)
@@ -134,7 +135,7 @@ const saveConfig = async () => {
   await connectTest()
   formRef.value.validate(async (valid) => {
     if (valid) {
-      const res = await globalStore.updateConfigStore(form.value)
+      const res = await configStore.updateConfigStore(form.value)
       if (res.status === 200) ElNotification.success(res.msg)
       else ElNotification.error(res.msg)
     } else {
@@ -144,14 +145,13 @@ const saveConfig = async () => {
   })
 }
 
+const confLoad = ref(false)
 onMounted(async () => {
-  if (globalStore.config) {
-    form.value = globalStore.config
-  } else {
-    const res = await globalStore.getConfigStore()
-    if (res.status === 200) {
-      form.value = globalStore.config
-    }
+  confLoad.value = true
+  const res = await configStore.getConfigStore()
+  if (res.status === 200) {
+    form.value = configStore.config
+    confLoad.value = false
   }
 })
 
@@ -165,7 +165,7 @@ const rules = {
 </script>
 
 <template>
-  <div class="setting-container h-full">
+  <div class="setting-container h-full" v-loading="confLoad">
     <card-container>
       <el-form
         :model="form"

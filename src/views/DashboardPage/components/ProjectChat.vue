@@ -1,5 +1,11 @@
 <script setup>
-defineProps({
+import { ref, nextTick, watch } from 'vue'
+import { Position, Delete } from '@element-plus/icons-vue'
+import ava from '@/assets/mnkq.png'
+import { useGlobalStore } from '@/stores'
+
+const globalStore = useGlobalStore()
+const props = defineProps({
   item: {
     type: Object,
     default: () => ({})
@@ -14,13 +20,70 @@ const hideItem = () => {
     chatBox.classList.remove('hide-animation')
     chatBox.classList.remove('fade-in')
     emit('hide')
+    // 清空对话
+    messages.value = []
   }, 1000)
+}
+
+// 人类介入
+const userInput = ref('')
+const isLoading = ref(false)
+const clearMessage = () => {
+  userInput.value = ''
+}
+// 对话信息
+const messages = ref([])
+
+watch(
+  () => props.item,
+  () => {
+    // 已有项目, 请求数据
+    if (props.item.type === 'old') {
+      // 请求
+    }
+    if (props.item.type === 'new') {
+      messages.value.push({
+        type: 'ai',
+        text: '你好, 我是AI, 请问有什么可以帮到您的?'
+      })
+    }
+  },
+  { immediate: true },
+  { deep: true }
+)
+// 插入聊天记录
+const insertMessage = (type, text) => {
+  messages.value.push({ type, text })
+}
+
+const chatBox = ref(null)
+const scrollToBottom = async () => {
+  await nextTick(() => {
+    chatBox.value.scrollTop = chatBox.value.scrollHeight
+  })
+}
+
+const sendMessage = async () => {
+  if (userInput.value.trim() === '') return
+
+  // 添加用户消息
+  insertMessage('user', userInput.value)
+  scrollToBottom()
+
+  // 清空输入框
+  userInput.value = ''
+
+  // ai 信息流式输出
+  //todo
+  // 结束
+  scrollToBottom()
+  isLoading.value = false
 }
 </script>
 
 <template>
-  <div class="pro-chat-container wh-full">
-    <div class="pro-chat-header h-60 f-s">
+  <div class="pro-chat-container wh-full fd-col">
+    <div class="pro-chat-header h-60 f-s flex-shrink-0 sticky top-0 z-10">
       <div class="hide-btn w-20% h-full flex items-center p-l-30">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -45,6 +108,76 @@ const hideItem = () => {
       <div class="pro-name f-1 f-c h-full fw-600 fs-16">{{ item?.name }}</div>
       <div class="place-holder w-20% h-full"></div>
     </div>
+    <!-- 对话框 -->
+    <div class="pro-chat-content f-1 h-80%">
+      <div
+        class="chat-box overflow-y-auto m-b-15 rounded-8 h-full fd-col relative p-t-20 p-b-10"
+        ref="chatBox"
+      >
+        <div
+          v-for="(message, index) in messages"
+          :key="index"
+          class="chat-message mb-10 p-x-1.25em fs-18 max-w-140rem"
+          :style="{
+            'align-self': message.type === 'user' ? 'flex-end' : 'flex-start'
+          }"
+        >
+          <div v-if="message.type === 'user'" class="user-message f-c">
+            <div class="chat chat-end">
+              <div
+                class="chat-bubble duration-500"
+                :class="globalStore.isDark ? '' : 'bubble-light'"
+              >
+                {{ message.text }}
+              </div>
+              <div class="chat-image avatar">
+                <div class="w-40 rounded-full">
+                  <img :src="ava" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="ai-message flex">
+            <div class="chat chat-start">
+              <div class="chat-image avatar">
+                <div class="w-40 rounded-full">
+                  <div class="role-ava wh-full f-c bg-#27ba9b">
+                    {{ message.type[0].toUpperCase() }}
+                  </div>
+                </div>
+              </div>
+              <div
+                class="chat-bubble duration-500"
+                :class="globalStore.isDark ? '' : 'bubble-light'"
+              >
+                {{ message.text }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 输入框 -->
+    <div class="input-box flex-shrink-0">
+      <!-- <div class="tip-btn bg-red">快捷短语</div> -->
+      <el-input
+        v-model="userInput"
+        placeholder="请输入您的问题..."
+        @keyup.enter="sendMessage"
+        :disabled="isLoading"
+      >
+        <template #suffix>
+          <el-button type="primary" @click="sendMessage" size="large" round>
+            <el-icon size="20"> <Position /></el-icon>
+          </el-button>
+        </template>
+        <template #prefix>
+          <div class="clear-btn f-c cursor-pointer" @click="clearMessage">
+            <el-icon size="24"> <Delete /></el-icon>
+          </div>
+        </template>
+      </el-input>
+    </div>
   </div>
 </template>
 
@@ -54,6 +187,7 @@ const hideItem = () => {
   border: 1px solid var(--el-card-border-color);
   .pro-chat-header {
     border-bottom: 1px solid var(--el-card-border-color);
+    background-color: var(--el-card-bg-color);
     .hide-btn {
       svg {
         &:hover {
@@ -64,5 +198,27 @@ const hideItem = () => {
       }
     }
   }
+  .pro-chat-content {
+    .chat-box {
+      scrollbar-width: none;
+    }
+  }
+}
+.bubble-light {
+  background-color: #f4f4f4;
+  color: #0d0d0d;
+}
+:deep(.el-input) {
+  --el-input-border-radius: 50px;
+}
+:deep(.el-input__wrapper) {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+:deep(.el-card__body) {
+  padding-top: 0 !important;
+}
+:deep(.el-input__prefix) {
+  margin-left: 18px;
 }
 </style>

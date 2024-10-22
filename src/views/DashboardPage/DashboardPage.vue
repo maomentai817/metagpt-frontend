@@ -25,7 +25,7 @@ const chatShow = ref(false)
 const activeItem = ref({})
 const checkHandle = (info) => {
   chatShow.value = true
-  activeItem.value = info
+  activeItem.value = { ...info, type: 'old' }
 }
 
 // 新建工程
@@ -65,7 +65,7 @@ const newProject = () => {
       ElNotification.success('创建工程成功')
       dialogPro.value = false
       setTimeout(() => {
-        activeItem.value = project.value
+        activeItem.value = { ...project.value, type: 'new' }
         chatShow.value = true
       }, 300)
     } else {
@@ -188,7 +188,13 @@ const newProject = () => {
 :deep(.el-textarea__inner) {
   scrollbar-width: thin;
 }
-
+:deep(.el-card) {
+  border-bottom-left-radius: 25px !important;
+  border-bottom-right-radius: 25px !important;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-top: 0;
+}
 @keyframes chatHide {
   0% {
     transform: translateY(0);

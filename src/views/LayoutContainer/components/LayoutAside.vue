@@ -1,5 +1,11 @@
 <script setup>
-import { HomeFilled, UserFilled, Setting } from '@element-plus/icons-vue'
+import {
+  HomeFilled,
+  UserFilled,
+  Setting,
+  Management,
+  Ticket
+} from '@element-plus/icons-vue'
 import { useGlobalStore } from '@/stores'
 import { useRouter } from 'vue-router'
 
@@ -9,6 +15,8 @@ const pathTitlt = {
   '/': '看板',
   '/dashboard': '看板',
   '/role': '预设',
+  '/action': '行为',
+  '/model': '模板',
   '/setting': '配置'
 }
 const handleOpen = (index) => {
@@ -61,6 +69,14 @@ const handleClose = (index) => {
       <el-menu-item index="/role">
         <el-icon><UserFilled /></el-icon>
         <template #title>预设</template>
+      </el-menu-item>
+      <el-menu-item index="/action">
+        <el-icon><Ticket /></el-icon>
+        <template #title>行为</template>
+      </el-menu-item>
+      <el-menu-item index="/model">
+        <el-icon><Management /></el-icon>
+        <template #title>模板</template>
       </el-menu-item>
       <el-menu-item index="/setting">
         <el-icon><Setting /></el-icon>

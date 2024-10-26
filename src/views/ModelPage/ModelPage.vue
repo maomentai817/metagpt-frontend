@@ -1,16 +1,16 @@
 <script setup></script>
 
 <template>
-  <div class="role-container h-full">
+  <div class="model-container h-full">
     <card-container>
-      <div class="rc-canvas wh-full"></div>
+      <div class="mc-canvas wh-full"></div>
     </card-container>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.role-container {
-  .rc-canvas {
+.model-container {
+  .mc-canvas {
     background-size: 20px 20px;
     background-position: left 0px top -40px;
     background-image: radial-gradient(

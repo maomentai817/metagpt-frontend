@@ -2,6 +2,7 @@
 import ProjectItem from './components/ProjectItem.vue'
 import ProjectChat from './components/ProjectChat.vue'
 import { ref } from 'vue'
+// import { getProjectLog } from '@/api/project'
 
 const data = [
   {
@@ -74,6 +75,12 @@ const newProject = () => {
     disabled.value = false
   })
 }
+
+// 获取项目日志信息
+// const getProjectLogHandle = async () => {
+//   const res = await getProjectLog()
+//   console.log(res)
+// }
 </script>
 
 <template>

@@ -23,6 +23,21 @@ const router = createRouter({
           path: '/role',
           name: 'RolePage',
           component: () => import('@/views/RolePage/RolePage.vue')
+        },
+        {
+          path: '/:pathMatch(.*)*',
+          name: 'not-found',
+          component: () => import('@/views/NotFound/NotFound.vue')
+        },
+        {
+          path: '/action',
+          name: 'ActionPage',
+          component: () => import('@/views/ActionPage/ActionPage.vue')
+        },
+        {
+          path: '/model',
+          name: 'ModelPage',
+          component: () => import('@/views/ModelPage/ModelPage.vue')
         }
       ]
     }

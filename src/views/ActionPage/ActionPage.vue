@@ -66,6 +66,7 @@ const showActionInfo = async (item) => {
   scrollbar-width: none;
 }
 :deep(.el-dialog) {
+  --el-dialog-margin-top: 10vh;
   padding: 0 !important;
   background-color: transparent !important;
 }

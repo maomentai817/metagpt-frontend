@@ -86,7 +86,10 @@ const newProject = () => {
 <template>
   <div class="dash-board h-full">
     <card-container class="p-t-15 relative duration-300 overflow-x-hidden">
-      <div class="pro-container flex" :class="chatShow ? 'fade-out' : ''">
+      <div
+        class="pro-container flex flex-wrap"
+        :class="chatShow ? 'fade-out' : ''"
+      >
         <project-item
           type="new"
           class="w-16.6%"

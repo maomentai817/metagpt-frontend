@@ -1,5 +1,6 @@
 <script setup>
 import { useGlobalStore } from '@/stores'
+import { getProjectFile } from '@/api/project'
 
 const globalStore = useGlobalStore()
 
@@ -15,8 +16,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['check'])
-const checkItem = () => {
-  emit('check', props.info)
+const checkItem = async () => {
+  const res = await getProjectFile(props.info.name)
+  emit('check', res.data)
 }
 </script>
 

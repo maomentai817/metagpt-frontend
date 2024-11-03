@@ -3,7 +3,10 @@ import { ref, nextTick, watch } from 'vue'
 import { Position, Delete } from '@element-plus/icons-vue'
 import ava from '@/assets/mnkq.png'
 import { useGlobalStore } from '@/stores'
+import FileItem from './FileItem.vue'
+import MarkdownIt from 'markdown-it'
 
+const md = MarkdownIt()
 const globalStore = useGlobalStore()
 const props = defineProps({
   item: {
@@ -11,7 +14,6 @@ const props = defineProps({
     default: () => ({})
   }
 })
-
 const emit = defineEmits(['hide'])
 const hideItem = () => {
   const chatBox = document.querySelector('.pro-chat-container')
@@ -33,6 +35,22 @@ const clearMessage = () => {
 }
 // 对话信息
 const messages = ref([])
+// 对已有项目做渲染处理
+const renderProject = () => {
+  // 遍历 props.item.steps 插入message
+  props.item.steps.forEach((step, index) => {
+    messages.value.push({
+      type: index === 0 ? 'user' : step.role,
+      text: step.context,
+      roleName: step.roleName,
+      roleJob: step.roleJob,
+      action: step.action,
+      fileName: step.fileName,
+      fileType: step.fileType,
+      toggle: false
+    })
+  })
+}
 
 watch(
   () => props.item,
@@ -40,6 +58,7 @@ watch(
     // 已有项目, 请求数据
     if (props.item.type === 'old') {
       // 请求
+      renderProject()
     }
     if (props.item.type === 'new') {
       messages.value.push({
@@ -117,7 +136,7 @@ const sendMessage = async () => {
         <div
           v-for="(message, index) in messages"
           :key="index"
-          class="chat-message mb-10 p-x-1.25em fs-18 max-w-140rem"
+          class="chat-message mb-10 p-x-1.25em max-w-140rem!"
           :style="{
             'align-self': message.type === 'user' ? 'flex-end' : 'flex-start'
           }"
@@ -146,11 +165,41 @@ const sendMessage = async () => {
                   </div>
                 </div>
               </div>
-              <div
-                class="chat-bubble duration-500"
-                :class="globalStore.isDark ? '' : 'bubble-light'"
-              >
-                {{ message.text }}
+              <div class="chat-right">
+                <div class="role-include fs-12 m-l-8 m-b-3">
+                  {{ message.roleName }} | {{ message.roleJob }}
+                </div>
+                <div
+                  class="chat-bubble duration-500 max-w-160rem! p-b-1"
+                  :class="globalStore.isDark ? '' : 'bubble-light'"
+                  v-show="message.toggle"
+                  @dblclick.stop="message.toggle = !message.toggle"
+                >
+                  <!-- {{ message.text }} -->
+                  <template v-if="message.fileType === 'md'">
+                    <span
+                      v-html="md.render(message.text)"
+                      class="markdown"
+                    ></span>
+                  </template>
+                  <template v-else>
+                    <VCodeBlock
+                      :browser-window="true"
+                      :code="message.text"
+                      highlightjs
+                      :lang="message.fileType"
+                      :theme="globalStore.isDark ? 'github-dark' : 'github'"
+                    />
+                  </template>
+                </div>
+                <div
+                  class="chat-bubble duration-500"
+                  :class="globalStore.isDark ? '' : 'bubble-light'"
+                  v-show="!message.toggle"
+                  @dblclick.stop="message.toggle = !message.toggle"
+                >
+                  <file-item :file="message"></file-item>
+                </div>
               </div>
             </div>
           </div>
@@ -204,9 +253,118 @@ const sendMessage = async () => {
     }
   }
 }
+// Markdown 样式重置
+:deep(.markdown) {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  margin: 20px 0;
+
+  // 标题样式
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.15em 0;
+    font-weight: bold;
+
+    &:nth-of-type(1) {
+      font-size: 2em;
+    }
+
+    &:nth-of-type(2) {
+      font-size: 1.75em;
+    }
+
+    &:nth-of-type(3) {
+      font-size: 1.5em;
+    }
+
+    &:nth-of-type(4) {
+      font-size: 1.25em;
+    }
+
+    &:nth-of-type(5) {
+      font-size: 1.1em;
+    }
+
+    &:nth-of-type(6) {
+      font-size: 1em;
+    }
+  }
+
+  // 段落样式
+  p {
+    margin: 0.5em 0;
+    line-height: 1.5;
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  // 列表样式
+  ul,
+  ol {
+    margin: 0.5em 0;
+    padding-left: 20px; // 添加左侧内边距
+    list-style-type: disc;
+
+    li {
+      margin-bottom: 0.5em; // 列表项之间的间距
+    }
+  }
+
+  // 链接样式
+  a {
+    color: #007bff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // 代码块样式
+  pre {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow: auto;
+  }
+
+  code {
+    background: #f8f8f8;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  // 图片样式
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  // 块引用样式
+  blockquote {
+    border-left: 4px solid #007bff;
+    padding-left: 10px;
+    margin: 0;
+    color: #555;
+    font-style: italic;
+  }
+}
+
 .bubble-light {
   background-color: #f4f4f4;
   color: #0d0d0d;
+}
+:deep(code) {
+  scrollbar-width: thin;
+}
+:deep(.hljs) {
+  background: transparent;
 }
 :deep(.el-input) {
   --el-input-border-radius: 50px;

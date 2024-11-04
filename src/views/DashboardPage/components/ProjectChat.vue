@@ -55,6 +55,7 @@ const renderProject = () => {
 watch(
   () => props.item,
   () => {
+    userInput.value = ''
     // 已有项目, 请求数据
     if (props.item.type === 'old') {
       // 请求
@@ -63,7 +64,8 @@ watch(
     if (props.item.type === 'new') {
       messages.value.push({
         type: 'ai',
-        text: '你好, 我是AI, 请问有什么可以帮到您的?'
+        text: '你好, 我是AI, 请问有什么可以帮到您的?',
+        toggle: true
       })
     }
   },
@@ -89,11 +91,33 @@ const sendMessage = async () => {
   insertMessage('user', userInput.value)
   scrollToBottom()
 
+  const desc = userInput.value
   // 清空输入框
   userInput.value = ''
 
   // ai 信息流式输出
-  //todo
+  const params = new URLSearchParams({
+    description: desc,
+    projectName: props.item.name
+  })
+  const eventSource = new EventSource(
+    `http://localhost:3007/start?${params.toString()}`
+  )
+  messages.value.push({
+    type: 'ai',
+    text: '',
+    toggle: true
+  })
+  eventSource.onmessage = (event) => {
+    console.log(event.data) // 处理接收到的数据
+    // 将 event.data 持续追加到一条message中
+    messages.value[messages.value.length - 1].text += event.data
+  }
+
+  eventSource.onerror = (error) => {
+    console.error('EventSource failed:', error)
+    eventSource.close()
+  }
   // 结束
   scrollToBottom()
   isLoading.value = false
@@ -144,7 +168,7 @@ const sendMessage = async () => {
           <div v-if="message.type === 'user'" class="user-message f-c">
             <div class="chat chat-end">
               <div
-                class="chat-bubble duration-500"
+                class="chat-bubble duration-500 min-w-20rem!"
                 :class="globalStore.isDark ? '' : 'bubble-light'"
               >
                 {{ message.text }}
@@ -166,7 +190,10 @@ const sendMessage = async () => {
                 </div>
               </div>
               <div class="chat-right">
-                <div class="role-include fs-12 m-l-8 m-b-3">
+                <div
+                  class="role-include fs-12 m-l-8 m-b-3"
+                  v-show="item.type !== 'new'"
+                >
                   {{ message.roleName }} | {{ message.roleJob }}
                 </div>
                 <div
@@ -176,7 +203,9 @@ const sendMessage = async () => {
                   @dblclick.stop="message.toggle = !message.toggle"
                 >
                   <!-- {{ message.text }} -->
-                  <template v-if="message.fileType === 'md'">
+                  <template
+                    v-if="message.fileType === 'md' || item.type === 'new'"
+                  >
                     <span
                       v-html="md.render(message.text)"
                       class="markdown"
@@ -359,6 +388,9 @@ const sendMessage = async () => {
 .bubble-light {
   background-color: #f4f4f4;
   color: #0d0d0d;
+}
+:deep(.chat-bubble) {
+  max-width: none;
 }
 :deep(code) {
   scrollbar-width: thin;

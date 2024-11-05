@@ -17,13 +17,16 @@ const props = defineProps({
 
 const emit = defineEmits(['check'])
 const checkItem = async () => {
-  const res = await getProjectFile(props.info.name)
+  const res = await getProjectFile(props.info?.name)
   emit('check', res.data)
 }
 </script>
 
 <template>
-  <div class="pro-item-container m-x-15 cp duration-300" @click="checkItem()">
+  <div
+    class="pro-item-container m-x-15 cp duration-300 m-b-20"
+    @click="checkItem()"
+  >
     <div class="pro-item-content h-250 f-c">
       <div
         class="new flex fd-col items-center duration-300"
@@ -72,12 +75,12 @@ const checkItem = async () => {
           </svg>
         </div>
         <div class="title fs-15 h-44 m-y-12 m-x-15 text-overflow">
-          {{ info.name }}
+          {{ info?.name }}
         </div>
         <div
           class="desc fs-13 h-75 color-#acacac m-x-15 text-overflow whitespace-normal"
         >
-          {{ info.desc }}
+          {{ info?.desc }}
         </div>
         <div
           class="sort m-t-20 m-x-15 h-24 leading-24 overflow-hidden color-#fff bg-#27ba9b text-center relative"

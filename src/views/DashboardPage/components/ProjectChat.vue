@@ -14,7 +14,7 @@ const props = defineProps({
     default: () => ({})
   }
 })
-const emit = defineEmits(['hide'])
+const emit = defineEmits(['hide', 'end'])
 const hideItem = () => {
   const chatBox = document.querySelector('.pro-chat-container')
   chatBox.classList.add('hide-animation')
@@ -38,9 +38,15 @@ const messages = ref([])
 // 对已有项目做渲染处理
 const renderProject = () => {
   // 遍历 props.item.steps 插入message
-  props.item.steps.forEach((step, index) => {
+  messages.value = []
+  messages.value.push({
+    type: 'user',
+    text: props.item.desc,
+    toggle: false
+  })
+  props.item.steps.forEach((step) => {
     messages.value.push({
-      type: index === 0 ? 'user' : step.role,
+      type: step.role,
       text: step.context,
       roleName: step.roleName,
       roleJob: step.roleJob,
@@ -83,7 +89,7 @@ const scrollToBottom = async () => {
     chatBox.value.scrollTop = chatBox.value.scrollHeight
   })
 }
-
+let typeInterval
 const sendMessage = async () => {
   if (userInput.value.trim() === '') return
 
@@ -100,6 +106,62 @@ const sendMessage = async () => {
     description: desc,
     projectName: props.item.name
   })
+
+  // 打字机相关逻辑
+  let isTyping = false
+  let currentMessage = ''
+  let messageIndex = 0
+  let cachedText = '' // 用来缓存当前打字机渲染的内容
+
+  // 存储待处理的消息
+  const messageQueue = []
+  let isTypingComplete = false // 标志，确保所有消息打字机效果完成后触发结束
+
+  // 打字机函数
+  const typeText = (text, callback) => {
+    if (isTyping) {
+      // 如果当前正在打字，加入消息队列，等待处理
+      messageQueue.push({ text, callback })
+      return
+    }
+
+    // 开始打字机效果
+    isTyping = true
+    currentMessage = text
+    messageIndex = 0
+    cachedText = '' // 清空缓存
+
+    typeInterval = setInterval(() => {
+      messageIndex++
+      cachedText = currentMessage.slice(messageIndex - 1, messageIndex)
+      messages.value[messages.value.length - 1].text += cachedText
+
+      // 更新渲染的 messages 数组
+      messages.value = [...messages.value]
+
+      if (messageIndex === currentMessage.length) {
+        // 换行
+        messages.value[messages.value.length - 1].text += '\n\n'
+        clearInterval(typeInterval)
+        isTyping = false
+        callback && callback() // 执行回调，通知打字机效果完成
+        processNextMessage() // 处理下一个消息
+      }
+    }, 10)
+  }
+  scrollToBottom()
+  // 处理下一个待处理的消息
+  const processNextMessage = () => {
+    if (messageQueue.length > 0) {
+      const nextMessage = messageQueue.shift() // 获取队列中的下一个消息
+      typeText(nextMessage.text, nextMessage.callback) // 继续执行打字机效果
+    } else {
+      // 如果队列为空，表示打字机效果已经完成
+      isTypingComplete = true
+    }
+  }
+
+  // 信息处理逻辑
   const eventSource = new EventSource(
     `http://localhost:3007/start?${params.toString()}`
   )
@@ -108,16 +170,43 @@ const sendMessage = async () => {
     text: '',
     toggle: true
   })
+
   eventSource.onmessage = (event) => {
-    console.log(event.data) // 处理接收到的数据
-    // 将 event.data 持续追加到一条message中
-    messages.value[messages.value.length - 1].text += event.data
+    // console.log(event.data) // 处理接收到的数据
+
+    if (event.data !== 'Script ended with code 0') {
+      // 逐字渲染数据
+      typeText(event.data, () => {
+        // console.log('Message typing complete')
+      })
+    } else {
+      // 如果收到 'Script ended with code 0'，在所有打字机效果完成后关闭连接并触发结束
+      eventSource.close()
+      scrollToBottom()
+
+      // 这里需要等待打字机效果完成再继续
+      const waitForTypingCompletion = setInterval(() => {
+        if (isTypingComplete) {
+          clearInterval(waitForTypingCompletion) // 停止检查
+          clearInterval(typeInterval)
+          setTimeout(() => {
+            ElNotification.success('项目生成成功')
+            scrollToBottom()
+            emit('end', props.item.name)
+          }, 2000)
+        }
+      }, 100) // 每 100 毫秒检查一次打字机是否完成
+    }
+
+    scrollToBottom()
   }
 
   eventSource.onerror = (error) => {
     console.error('EventSource failed:', error)
     eventSource.close()
+    scrollToBottom()
   }
+
   // 结束
   scrollToBottom()
   isLoading.value = false

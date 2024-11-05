@@ -2,31 +2,16 @@
 import ProjectItem from './components/ProjectItem.vue'
 import ProjectChat from './components/ProjectChat.vue'
 import { ref, onMounted } from 'vue'
-import { getProjectList } from '@/api/project'
-
-// const data = [
-//   {
-//     name: '项目1',
-//     desc: '居民在使用家用热水器的过程中，会因为地区气候，区域不同和用户年龄性别差异等原因，形成不同的使用习惯。家电企业若能深入了解其产品在不同用户群的使用习惯，开发新功能，就能开拓新市场。本项目将根据BP神经网络构建洗浴事件识别模型，根据洗浴事件识别模型，对不同地区的用户的洗浴事件进行识别，根据识别结果比较不同客户群的客户使用习惯，加深对客户的理解等。从而，厂商可以对不同的客户群提供最适合的个性化产品，改进新产品的智能化的研发和制定相应的营销策略。了解家用热水器行业现状与用户行为事件分析。',
-//     loading: false
-//   },
-//   {
-//     name: '项目2',
-//     desc: '项目描述',
-//     loading: false
-//   },
-//   {
-//     name: '项目3',
-//     desc: '项目描述',
-//     loading: true
-//   }
-// ]
+import { getProjectList, getProjectFile } from '@/api/project'
 
 const chatShow = ref(false)
 const activeItem = ref({})
 const checkHandle = (info) => {
   chatShow.value = true
   activeItem.value = { ...info, type: 'old' }
+  // 通过 name 匹配 data.value 中的desc
+  let index = data.value.findIndex((item) => item.name === info.name)
+  activeItem.value = { ...info, type: 'old', desc: data.value[index].desc }
 }
 
 // 新建工程
@@ -76,16 +61,33 @@ const newProject = () => {
   })
 }
 
-// 获取项目日志信息
-// const getProjectLogHandle = async () => {
-//   const res = await getProjectLog()
-//   console.log(res)
-// }
 const data = ref([])
 onMounted(async () => {
   const res = await getProjectList()
   data.value = res.data
 })
+
+// 各种原因需要刷新 project-list
+const reGetProjectList = async () => {
+  const res = await getProjectList()
+  data.value = res.data
+}
+
+// chat 盒子隐藏
+const hideChat = () => {
+  chatShow.value = false
+  reGetProjectList()
+}
+
+// 项目生成成功后刷新项目展示信息
+const newProjectSuccess = async (name) => {
+  reGetProjectList()
+  const res = await getProjectFile(name)
+  chatShow.value = true
+  // 通过 name 匹配 data.value 中的desc
+  let index = data.value.findIndex((item) => item.name === name)
+  activeItem.value = { ...res.data, type: 'old', desc: data.value[index].desc }
+}
 </script>
 
 <template>
@@ -112,7 +114,8 @@ onMounted(async () => {
         class="absolute top-0 left-0 pc-container"
         :class="chatShow ? 'fade-in' : 'no-show'"
         :item="activeItem"
-        @hide="chatShow = false"
+        @hide="hideChat"
+        @end="newProjectSuccess"
       ></project-chat>
     </card-container>
     <!-- 创建工程 -->

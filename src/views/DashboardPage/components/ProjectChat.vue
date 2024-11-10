@@ -211,6 +211,23 @@ const sendMessage = async () => {
   scrollToBottom()
   isLoading.value = false
 }
+
+// 程序运行
+const runDialog = ref(false)
+const iframe = ref(null)
+const runCode = () => {
+  runDialog.value = true
+  // 通过 blob 创建 url
+  // const blob = new Blob([code], { type: 'text/html' })
+  // const blobUrl = URL.createObjectURL(blob)
+  // console.log(code)
+  // 将 Blob URL 设置到 iframe 的 src 属性中
+  nextTick(() => {
+    if (iframe.value) {
+      iframe.value.src = `http://127.0.0.1:5500/metagpt/workspace/${props.item.name}/${props.item.name}/index.html`
+    }
+  })
+}
 </script>
 
 <template>
@@ -302,11 +319,16 @@ const sendMessage = async () => {
                   </template>
                   <template v-else>
                     <VCodeBlock
+                      highlightjs
+                      tabs
+                      run-text="运行"
+                      :copy-tab="false"
                       :browser-window="true"
                       :code="message.text"
-                      highlightjs
                       :lang="message.fileType"
+                      :run-tab="message.fileType === 'html'"
                       :theme="globalStore.isDark ? 'github-dark' : 'github'"
+                      @run="runCode"
                     />
                   </template>
                 </div>
@@ -345,6 +367,10 @@ const sendMessage = async () => {
         </template>
       </el-input>
     </div>
+    <!-- 程序运行 -->
+    <el-dialog v-model="runDialog" title="程序运行" fullscreen id="run-code">
+      <iframe ref="iframe" frameborder="0" width="100%" height="100%"></iframe>
+    </el-dialog>
   </div>
 </template>
 
@@ -473,7 +499,13 @@ const sendMessage = async () => {
     font-style: italic;
   }
 }
-
+:deep(#run-code .el-dialog__body) {
+  width: 100%;
+  height: calc(100% - 31px - var(--el-font-line-height-primary));
+}
+:deep(#run-code) {
+  padding-bottom: 0;
+}
 .bubble-light {
   background-color: #f4f4f4;
   color: #0d0d0d;
@@ -499,5 +531,11 @@ const sendMessage = async () => {
 }
 :deep(.el-input__prefix) {
   margin-left: 18px;
+}
+:deep(.v-code-block--tab-highlightjs-github) {
+  background-color: transparent !important;
+}
+:deep(.v-code-block--tab-highlightjs-github-dark) {
+  background-color: transparent !important;
 }
 </style>

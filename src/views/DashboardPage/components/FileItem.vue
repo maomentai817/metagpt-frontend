@@ -35,7 +35,7 @@ const fileIcon = computed(() => {
 
 <template>
   <div
-    class="file-item-container f-b cp m-r-20"
+    class="file-item-container f-b cp m-r-20 duration-500"
     :class="globalStore.isDark ? 'file-dark' : 'file-light'"
   >
     <div class="file-img wh-40 f-c rounded-4 flex-shrink-0">

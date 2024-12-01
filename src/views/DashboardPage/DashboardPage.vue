@@ -2,7 +2,7 @@
 import ProjectItem from './components/ProjectItem.vue'
 import ProjectChat from './components/ProjectChat.vue'
 import { ref, onMounted } from 'vue'
-import { getProjectList, getProjectFile } from '@/api/project'
+import { getProjectList, getProjectFile, getEnvs } from '@/api/project'
 
 const chatShow = ref(false)
 const activeItem = ref({})
@@ -18,7 +18,8 @@ const checkHandle = (info) => {
 const dialogPro = ref(false)
 const project = ref({
   name: '',
-  desc: ''
+  desc: '',
+  envName: ''
 })
 const proRef = ref(null)
 const resetForm = () => {
@@ -41,9 +42,11 @@ let projectNameValidator = (rule, value, callback) => {
 }
 const rules = {
   name: [{ required: true, validator: projectNameValidator, trigger: 'blur' }],
-  desc: [{ required: false, message: '请填写描述信息', trigger: 'blur' }]
+  desc: [{ required: false, message: '请填写描述信息', trigger: 'blur' }],
+  envName: [{ required: true, message: '请选择场景', trigger: 'change' }]
 }
 const disabled = ref(false) // 提交按钮禁用
+
 const newProject = () => {
   disabled.value = true
   proRef.value.validate(async (valid) => {
@@ -62,9 +65,12 @@ const newProject = () => {
 }
 
 const data = ref([])
+const envs = ref([])
 onMounted(async () => {
   const res = await getProjectList()
   data.value = res.data
+  const resEnv = await getEnvs()
+  envs.value = resEnv.data
 })
 
 // 各种原因需要刷新 project-list
@@ -133,6 +139,16 @@ const newProjectSuccess = async (name) => {
               autocomplete="off"
               placeholder="请输入工程名称"
             />
+          </el-form-item>
+          <el-form-item label="场景选择" class="m-t-30!" prop="envName">
+            <el-select v-model="project.envName" placeholder="请选择场景">
+              <el-option
+                v-for="env in envs"
+                :key="env"
+                :label="env"
+                :value="env"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="工程描述" class="m-t-30!" prop="desc">
             <el-input

@@ -104,7 +104,8 @@ const sendMessage = async () => {
   // ai 信息流式输出
   const params = new URLSearchParams({
     description: desc,
-    projectName: props.item.name
+    projectName: props.item.name,
+    envName: props.item.envName
   })
 
   // 打字机相关逻辑
@@ -502,6 +503,7 @@ const runCode = () => {
 :deep(#run-code .el-dialog__body) {
   width: 100%;
   height: calc(100% - 31px - var(--el-font-line-height-primary));
+  padding: 0;
 }
 :deep(#run-code) {
   padding-bottom: 0;

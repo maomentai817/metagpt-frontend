@@ -8,3 +8,6 @@ export const getProjectList = () => instance.get('/project/list')
 
 // 获取项目信息
 export const getProjectFile = (name) => instance.post('/project/file', { name })
+
+// 获取场景名列表
+export const getEnvs = () => instance.get('/env')

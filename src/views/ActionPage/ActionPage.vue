@@ -67,8 +67,8 @@ const showActionInfo = async (item) => {
 }
 :deep(.el-dialog) {
   --el-dialog-margin-top: 10vh;
-  padding: 0 !important;
-  background-color: transparent !important;
+  padding: 10px !important;
+  // background-color: transparent !important;
 }
 :deep(.el-dialog__header) {
   padding: 0 !important;

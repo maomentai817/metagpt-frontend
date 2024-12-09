@@ -11,3 +11,9 @@ export const getProjectFile = (name) => instance.post('/project/file', { name })
 
 // 获取场景名列表
 export const getEnvs = () => instance.get('/env')
+
+// 创建场景
+export const createEnv = (data) => instance.post('/env/new', data)
+
+// 获取场景角色
+export const getEnvRole = (name) => instance.get(`/env/role?envName=${name}`)

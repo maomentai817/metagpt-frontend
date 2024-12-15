@@ -42,8 +42,13 @@ const handleClose = () => {
 }
 
 const createModel = async () => {
-  const res = await createEnv(form.value)
-  console.log(res)
+  await createEnv(form.value)
+  ElMessage.success('创建成功')
+  handleClose()
+  const res = await getEnvs()
+  envList.value = res.data
+  const resRole = await getRoleList()
+  roleList.value = resRole.data
 }
 </script>
 

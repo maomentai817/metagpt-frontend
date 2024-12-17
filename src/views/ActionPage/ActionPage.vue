@@ -1,8 +1,9 @@
 <script setup>
-import { getActionList, getActionInfo } from '@/api/action'
+import { getActionList, getActionInfo, createActionCode } from '@/api/action'
 import { ref, onMounted } from 'vue'
 import ActionItem from './components/ActionItem.vue'
 import { useGlobalStore } from '@/stores'
+import codeMirror from '../RolePage/components/codeMirror.vue'
 
 const actionList = ref([])
 onMounted(async () => {
@@ -18,13 +19,59 @@ const showActionInfo = async (item) => {
   activeActionInfo.value = res.data
   dialogVisible.value = true
 }
+
+// 新建行为
+const newDrawer = ref(false)
+const createActionOpen = () => {
+  newDrawer.value = true
+}
+const activeTab = ref('code')
+const form = ref({
+  roleName: '',
+  profile: '',
+  actions: []
+})
+
+const newClose = () => {
+  form.value = {
+    roleName: '',
+    profile: '',
+    actions: []
+  }
+  activeTab.value = 'code'
+  newDrawer.value = false
+  code.value = ''
+  codeName.value = ''
+}
+const code = ref('')
+const codeName = ref('')
+// 提交
+const submitRole = async () => {
+  if (activeTab.value === 'option') {
+    // await createRole(form.value)
+  } else {
+    await createActionCode({
+      codeName: codeName.value,
+      code: code.value
+    })
+  }
+
+  ElMessage.success('创建成功')
+  newClose()
+  const res = await getActionList()
+  actionList.value = res.data
+}
 </script>
 
 <template>
   <div class="action-container h-full">
     <card-container>
       <div class="ac-canvas wh-full fd-col items-center p-t-30">
-        <el-button class="add-action" type="primary" size="large"
+        <el-button
+          class="add-action"
+          type="primary"
+          size="large"
+          @click="createActionOpen"
           >自定义行为</el-button
         >
         <div class="shell m-t-80">
@@ -45,6 +92,31 @@ const showActionInfo = async (item) => {
           :theme="globalStore.isDark ? 'github-dark' : 'github'"
         />
       </el-dialog>
+      <el-drawer
+        v-model="newDrawer"
+        :with-header="false"
+        size="50%"
+        @close="newClose"
+      >
+        <div class="role-name m-b-20">新建角色</div>
+        <el-tabs v-model="activeTab">
+          <el-tab-pane label="代码" name="code">
+            <el-form>
+              <el-form-item label="行为名"
+                ><el-input v-model="codeName"></el-input
+              ></el-form-item>
+            </el-form>
+            <codeMirror v-model="code" />
+          </el-tab-pane>
+          <el-tab-pane label="选项" name="option"> options </el-tab-pane>
+        </el-tabs>
+        <template #footer>
+          <div class="footer-btn">
+            <el-button @click="newClose">取消</el-button>
+            <el-button type="primary" @click="submitRole">确定</el-button>
+          </div>
+        </template>
+      </el-drawer>
     </card-container>
   </div>
 </template>
